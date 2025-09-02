@@ -47,7 +47,7 @@ jobs:
           path: backend/vendor
           key: composer-v1-${{ hashFiles('backend/composer.lock') }}
 
-      - run: docker compose exec -T app composer install -n --prefer-dist --no-dev
+      - run: docker compose exec -T app composer update --no-dev --optimize-autoloader
         if: ${{ !steps.cache-composer.outputs.cache-hit }}
 
       - name: Cache npm
