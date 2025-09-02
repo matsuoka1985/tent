@@ -3,10 +3,14 @@ FROM nginx:1.20-alpine
 LABEL maintainer="ucan-lab <yes@u-can.pro>"
 SHELL ["/bin/ash", "-oeux", "pipefail", "-c"]
 
-ENV TZ=UTC
+ENV TZ=UTC \
+    HOME=/tmp \
+    NPM_CONFIG_CACHE=/tmp/.npm
 
 RUN apk update && \
-  apk add --update --no-cache --virtual=.build-dependencies g++
+  apk add --update --no-cache --virtual=.build-dependencies g++ \
+  && mkdir -p /tmp/.npm /work/backend/public \
+  && chmod -R 777 /tmp/.npm
 
 # node command
 COPY --from=node /usr/local/bin /usr/local/bin
@@ -14,14 +18,8 @@ COPY --from=node /usr/local/bin /usr/local/bin
 COPY --from=node /usr/local/lib /usr/local/lib
 # yarn command
 COPY --from=node /opt /opt
-
-# Fix npm cache permissions
-RUN npm cache clean --force
-
 # nginx config file will be output to /etc/nginx/conf.d/ by envsubst
 COPY ./infra/docker/nginx/default.conf /etc/nginx/templates/default.conf.template
 COPY ./infra/docker/nginx/nginx.conf /etc/nginx/nginx.conf
-
-COPY ./backend/public /work/backend/public
 
 WORKDIR /work/backend
